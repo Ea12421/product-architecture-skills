@@ -1,8 +1,8 @@
 # Product Architecture Skills
 
-一套用于 AI 产品架构搭建与逆向拆解的 Agent Skills。基于 4 层骨架（数据 / 能力 / 场景 / 触达）+ 数据流转方法论，兼容 claude.ai、Claude Code、Codex CLI 等支持 Agent Skills 开放标准的 AI agent。
+一套用于 AI 产品架构搭建与逆向拆解的 Agent Skills。基于 4 层骨架（数据 / 能力 / 场景 / 触达）+ 数据流转方法论。
 
-本仓库同时也是一个 **Claude Code Plugin Marketplace**，支持一键安装。
+兼容所有支持 Agent Skills 开放标准的客户端：Claude Code（CLI 和 IDE 扩展）、claude.ai、Cursor、Codex CLI、Gemini CLI、GitHub Copilot 等。
 
 ## 包含的 Skills
 
@@ -11,7 +11,81 @@
 | product-architecture-build | 产品架构搭建 | 从 0 搭建 AI 产品的架构图或完整立项方案 |
 | product-architecture-teardown | 产品架构拆解 | 逆向拆解已有 AI 产品的架构（六步法） |
 
-两个 skill 互相独立，可以单独安装、单独使用。它们之间会在合适时机互相提示对方存在（比如用户在搭建时提到"参考某产品"，搭建 skill 会建议先用拆解 skill），但不强制依赖。
+两个 skill 互相独立，可单独安装。
+
+---
+
+## 安装方法
+
+### 🌟 通用方法（推荐，所有客户端都能用）
+
+不依赖任何特殊命令、不需要权限授权、不依赖 marketplace 机制，只是把 SKILL.md 所在的文件夹拷到你 AI 客户端的 skills 目录里。
+
+```bash
+# 1. 克隆仓库
+git clone https://github.com/Ea12421/product-architecture-skills.git
+cd product-architecture-skills
+
+# 2. 拷到 AI 客户端的 skills 目录
+#    Claude Code（CLI 或 IDE 扩展通用）：
+cp -r product-architecture-build/skills/product-architecture-build ~/.claude/skills/
+cp -r product-architecture-teardown/skills/product-architecture-teardown ~/.claude/skills/
+
+# 3. 重启 AI 客户端
+```
+
+**不同客户端的 skills 目录路径**：
+
+| 客户端 | 路径 |
+|--------|------|
+| Claude Code（CLI 或 IDE 扩展） | `~/.claude/skills/` |
+| Cursor | `~/.cursor/skills-cursor/` |
+| Codex CLI | `~/.codex/skills/` |
+| 其他 | 查阅各自客户端文档 |
+
+只要把上面 `cp` 命令的目标路径换成对应客户端的目录即可。
+
+---
+
+### 方法 B：Claude Code CLI 一键 marketplace 安装
+
+> ⚠️ **此方法仅适用于 Claude Code 终端 CLI**。VSCode/Cursor 扩展、claude.ai 网页等图形客户端**不支持** `/plugin` 命令，请用上面的"通用方法"。
+
+在 Claude Code CLI 会话里跑：
+
+```
+/plugin marketplace add Ea12421/product-architecture-skills
+/plugin install product-architecture-build@product-architecture-skills
+/plugin install product-architecture-teardown@product-architecture-skills
+```
+
+两个 skill 可单独装，只装一个跳过对应那行即可。
+
+---
+
+### 方法 C：claude.ai 网页（ZIP 上传）
+
+claude.ai 不支持 git clone 也不支持 URL 安装，必须走 web UI：
+
+1. 下载需要的 ZIP（在 GitHub 上点开文件，右上角 `Download raw file`）：
+   - [`dist/product-architecture-build.zip`](./dist/product-architecture-build.zip)
+   - [`dist/product-architecture-teardown.zip`](./dist/product-architecture-teardown.zip)
+2. 打开 [claude.ai](https://claude.ai) → `Customize` → `Skills`
+3. 点 `+ Create skill` → 上传 ZIP
+4. 在 skill 列表里打开开关
+
+> ⚠️ claude.ai 上使用 skills 需要先在 Settings 里开启 `Code execution and file creation`。详见 <https://support.claude.com/en/articles/12512180-use-skills-in-claude>
+
+---
+
+### 方法 D：Codex CLI
+
+```
+$skill-installer install https://github.com/Ea12421/product-architecture-skills/tree/main/product-architecture-build/skills/product-architecture-build
+$skill-installer install https://github.com/Ea12421/product-architecture-skills/tree/main/product-architecture-teardown/skills/product-architecture-teardown
+```
+
+重启 Codex 后生效。
 
 ---
 
@@ -90,57 +164,6 @@
 
 ---
 
-## 安装方法
-
-下面把 `<你的用户名>` 替换成 GitHub 用户名。
-
-### Claude Code（推荐：marketplace 一键装）
-
-在 Claude Code 里依次运行：
-
-```
-/plugin marketplace add <你的用户名>/product-architecture-skills
-/plugin install product-architecture-build@product-architecture-skills
-/plugin install product-architecture-teardown@product-architecture-skills
-```
-
-两个 skill 可以选择性单独装，不一定都要。运行 `/plugin` 可以可视化管理。
-
-> 一行命令的写法（直接复制就能用）：
-> ```bash
-> claude plugin marketplace add <你的用户名>/product-architecture-skills
-> claude plugin install product-architecture-build@product-architecture-skills
-> claude plugin install product-architecture-teardown@product-architecture-skills
-> ```
-
-### Codex CLI
-
-在 Codex 会话里直接运行：
-
-```
-$skill-installer install https://github.com/<你的用户名>/product-architecture-skills/tree/main/product-architecture-build/skills/product-architecture-build
-$skill-installer install https://github.com/<你的用户名>/product-architecture-skills/tree/main/product-architecture-teardown/skills/product-architecture-teardown
-```
-
-重启 Codex 后生效。
-
-### claude.ai（不支持 URL 安装，须上传 ZIP）
-
-1. 从仓库 `dist/` 目录下载需要的 ZIP（GitHub 上打开对应文件，点 `Download raw file`）：
-   - `dist/product-architecture-build.zip`
-   - `dist/product-architecture-teardown.zip`
-2. 打开 [claude.ai](https://claude.ai) → `Customize` → `Skills`
-3. 点 `+ Create skill` → 上传 ZIP
-4. 在 skill 列表里打开开关
-
-> ⚠️ claude.ai 上使用 skills 需要先在 Settings 里开启 `Code execution and file creation`。详见：<https://support.claude.com/en/articles/12512180-use-skills-in-claude>
-
-### 其他 agent
-
-兼容 Agent Skills 开放标准的其他 agent（Cursor、Gemini CLI、GitHub Copilot in VS Code 等）都可以用。具体路径请参考各自 agent 的文档。SKILL.md 文件本身是通用格式。
-
----
-
 ## 文件结构
 
 ```
@@ -154,7 +177,7 @@ product-architecture-skills/                         ← 仓库根（也是 mark
 │   │   └── plugin.json                              ← Plugin manifest
 │   └── skills/
 │       └── product-architecture-build/
-│           └── SKILL.md                             ← 实际的 skill 内容
+│           └── SKILL.md                             ← 实际的 skill 内容（手动安装拷这个文件夹）
 ├── product-architecture-teardown/                   ← 第 2 个 plugin
 │   ├── .claude-plugin/
 │   │   └── plugin.json
@@ -166,16 +189,19 @@ product-architecture-skills/                         ← 仓库根（也是 mark
     └── product-architecture-teardown.zip            ← 同上
 ```
 
-**为什么有两种结构**：
-- 仓库里是嵌套结构（`product-architecture-build/skills/product-architecture-build/SKILL.md`）——这是 Claude Code marketplace plugin 的标准布局
-- `dist/` 里的 ZIP 是扁平结构（`product-architecture-build/SKILL.md`）——这是 claude.ai 上传时要求的格式
-- 同一份 SKILL.md，两种打包方式覆盖所有平台
+**为什么是这种嵌套结构**：仓库同时支持四种安装方式，所以同一份 SKILL.md 需要在不同位置可被找到。
+
+- **通用方法（手动 cp）**：拷 `product-architecture-<build|teardown>/skills/<同名子文件夹>/`
+- **Claude Code marketplace**：识别仓库根的 `.claude-plugin/marketplace.json` 自动定位
+- **claude.ai**：用 `dist/` 里的扁平 ZIP
+- **Codex CLI**：用上面给的 GitHub URL
 
 ---
 
 ## 更新日志
 
-- **v1.0** (2026-05-14) — 初版发布。包含两个 skill：搭建（product-architecture-build）+ 拆解（product-architecture-teardown）。基于 4 层骨架方法论。同时作为 Claude Code Plugin Marketplace 分发。
+- **v1.0.1** (2026-05-14) — README 修订：通用 git clone + cp 安装方式提升为推荐方法。明确 `/plugin` 命令的客户端限制。所有用户名占位符替换为实际值。
+- **v1.0** (2026-05-14) — 初版发布。两个 skill：搭建 + 拆解。基于 4 层骨架方法论。同时作为 Claude Code Plugin Marketplace 分发。
 
 ---
 
