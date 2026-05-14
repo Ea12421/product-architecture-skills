@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-marketplace.json",
+  "name": "product-architecture-skills",
+  "description": "AI 产品架构搭建与逆向拆解的 skills 集合（基于 4 层骨架方法论）",
+  "owner": {
+    "name": "Your Name"
+  },
+  "plugins": [
+    {
+      "name": "product-architecture-build",
+      "source": "./product-architecture-build",
+      "description": "从 0 搭建 AI 产品的架构图或完整立项方案（4 层骨架 + 数据流转 + 三种场景）",
+      "category": "product"
+    },
+    {
+      "name": "product-architecture-teardown",
+      "source": "./product-architecture-teardown",
+      "description": "逆向拆解已有 AI 产品的架构（六步法 + 4 层骨架 + 推测标记）",
+      "category": "product"
+    }
+  ]
+}

@@ -1,0 +1,5 @@
+{
+  "name": "product-architecture-teardown",
+  "description": "逆向拆解已有 AI 产品的架构（六步法 + 4 层骨架 + 推测标记）",
+  "version": "1.0.0"
+}

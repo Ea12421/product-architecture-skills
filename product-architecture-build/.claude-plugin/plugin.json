@@ -1,0 +1,5 @@
+{
+  "name": "product-architecture-build",
+  "description": "从 0 搭建 AI 产品的架构图或完整立项方案（4 层骨架 + 数据流转 + 三种场景）",
+  "version": "1.0.0"
+}
