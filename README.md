@@ -34,6 +34,8 @@ cp -r product-architecture-teardown/skills/product-architecture-teardown ~/.clau
 # 3. 重启 AI 客户端
 ```
 
+⚠️ **v1.1 起 skill 内部新增 `references/` 子目录**，上面的 `cp -r` 会自动把整个 skill 文件夹（包含 references/）拷过去，无需额外操作。
+
 **不同客户端的 skills 目录路径**：
 
 | 客户端 | 路径 |
@@ -63,18 +65,20 @@ cp -r product-architecture-teardown/skills/product-architecture-teardown ~/.clau
 
 ---
 
-### 方法 C：claude.ai 网页（ZIP 上传）
+### 方法 C：claude.ai 网页（.skill 上传）
 
 claude.ai 不支持 git clone 也不支持 URL 安装，必须走 web UI：
 
-1. 下载需要的 ZIP（在 GitHub 上点开文件，右上角 `Download raw file`）：
-   - [`dist/product-architecture-build.zip`](./dist/product-architecture-build.zip)
-   - [`dist/product-architecture-teardown.zip`](./dist/product-architecture-teardown.zip)
+1. 下载需要的 `.skill` 文件（在 GitHub 上点开文件，右上角 `Download raw file`）：
+   - [`dist/product-architecture-build.skill`](./dist/product-architecture-build.skill)
+   - [`dist/product-architecture-teardown.skill`](./dist/product-architecture-teardown.skill)
 2. 打开 [claude.ai](https://claude.ai) → `Customize` → `Skills`
-3. 点 `+ Create skill` → 上传 ZIP
+3. 点 `+ Create skill` → 上传 `.skill` 文件
 4. 在 skill 列表里打开开关
 
 > ⚠️ claude.ai 上使用 skills 需要先在 Settings 里开启 `Code execution and file creation`。详见 <https://support.claude.com/en/articles/12512180-use-skills-in-claude>
+>
+> ℹ️ `.skill` 是 Anthropic 官方推荐的 skill 打包格式，本质是 ZIP。v1.0 时使用 `.zip` 扩展名，v1.1 起改用官方 `.skill` 格式（用 Anthropic 官方 `package_skill.py` 打包生成）。
 
 ---
 
@@ -172,34 +176,125 @@ product-architecture-skills/                         ← 仓库根（也是 mark
 │   └── marketplace.json                             ← Claude Code marketplace 索引
 ├── README.md
 ├── LICENSE
+├── _shared/                                         ← v1.1 新增：共享 references 单一来源
+│   ├── visual-styles.md                             ←   4 风格色板 + 通用视觉原则
+│   ├── html-spec.md                                 ←   HTML 静态产出规范
+│   └── arrow-routing.md                             ←   箭头路由 + 添加/删除交互
+├── scripts/                                         ← v1.1 新增：工具脚本
+│   ├── sync_references.py                           ←   把 _shared/ 同步到两个 skill 的 references/
+│   ├── validate_and_sync.py                         ←   sync + 校验的 wrapper
+│   ├── quick_validate.py                            ←   Anthropic 官方校验器（复制进 repo）
+│   └── package_skill.py                             ←   Anthropic 官方打包工具（复制进 repo）
+├── .pre-commit-config.yaml                          ← v1.1 新增：pre-commit hook 配置
 ├── product-architecture-build/                      ← 第 1 个 plugin
 │   ├── .claude-plugin/
-│   │   └── plugin.json                              ← Plugin manifest
+│   │   └── plugin.json
 │   └── skills/
 │       └── product-architecture-build/
-│           └── SKILL.md                             ← 实际的 skill 内容（手动安装拷这个文件夹）
+│           ├── SKILL.md                             ← 主 skill 文件（薄）
+│           └── references/                          ← v1.1 新增：从 _shared/ sync 而来
+│               ├── visual-styles.md
+│               ├── html-spec.md
+│               └── arrow-routing.md
 ├── product-architecture-teardown/                   ← 第 2 个 plugin
 │   ├── .claude-plugin/
 │   │   └── plugin.json
 │   └── skills/
 │       └── product-architecture-teardown/
-│           └── SKILL.md
+│           ├── SKILL.md
+│           └── references/
+│               ├── visual-styles.md                 ←   sync 自 _shared/
+│               ├── html-spec.md                     ←   sync 自 _shared/
+│               ├── arrow-routing.md                 ←   sync 自 _shared/
+│               └── speculation-markers.md           ←   teardown 专属，不 sync
 └── dist/
-    ├── product-architecture-build.zip               ← 给 claude.ai 上传用（扁平结构）
-    └── product-architecture-teardown.zip            ← 同上
+    ├── product-architecture-build.skill             ← 给 claude.ai 上传用（v1.1 从 .zip 改为 .skill）
+    └── product-architecture-teardown.skill          ← 同上
 ```
 
 **为什么是这种嵌套结构**：仓库同时支持四种安装方式，所以同一份 SKILL.md 需要在不同位置可被找到。
 
-- **通用方法（手动 cp）**：拷 `product-architecture-<build|teardown>/skills/<同名子文件夹>/`
+- **通用方法（手动 cp）**：拷 `product-architecture-<build|teardown>/skills/<同名子文件夹>/`（含 references/）
 - **Claude Code marketplace**：识别仓库根的 `.claude-plugin/marketplace.json` 自动定位
-- **claude.ai**：用 `dist/` 里的扁平 ZIP
+- **claude.ai**：用 `dist/` 里的扁平 `.skill` 文件
 - **Codex CLI**：用上面给的 GitHub URL
+
+---
+
+## 维护者指南（v1.1 新增）
+
+> 如果你只是想**使用**这两个 skill，到上面"安装方法"为止就够了。本节只对**想修改这两个 skill 内容**的人有用。
+
+### 单一来源原则
+
+v1.1 起，两个 skill 的 `references/` 子目录里 3 份共享 reference（`visual-styles.md` / `html-spec.md` / `arrow-routing.md`）**不要直接编辑**——它们顶部都有 `<!-- AUTO-GENERATED from _shared/. Do not edit here. -->` 注释。
+
+**所有修改都改 `_shared/<对应文件>`，然后跑 sync 脚本同步到两个 skill。**
+
+teardown 专属的 `speculation-markers.md` 不由 sync 管理，直接在它原位置编辑即可。
+
+### Prerequisites（运行 scripts/ 下任何工具前）
+
+- **Python 3.7+**
+- **PyYAML**（`quick_validate.py` 依赖）：`pip3 install pyyaml`
+- **pre-commit**（可选，启用 hook 才需要）：`pip3 install pre-commit`
+
+### 常用命令
+
+所有命令都**必须从仓库根目录（这个 README 所在目录）跑**，因为脚本用 `python3 -m scripts.xxx` 的模块语法（必须能找到 `scripts` 包）。
+
+```bash
+# 1. 改了 _shared/ 之后，把改动同步到两个 skill 的 references/
+python3 scripts/sync_references.py
+
+# 2. 校验单个 skill 是否符合 Anthropic Skills 规范（先 sync，再校验）
+python3 -m scripts.validate_and_sync product-architecture-build/skills/product-architecture-build
+python3 -m scripts.validate_and_sync product-architecture-teardown/skills/product-architecture-teardown
+
+# 3. 打包成 .skill 文件供 claude.ai 上传
+python3 -m scripts.package_skill product-architecture-build/skills/product-architecture-build dist/
+python3 -m scripts.package_skill product-architecture-teardown/skills/product-architecture-teardown dist/
+```
+
+⚠️ **注意 `-m` 语法**：必须用 `python3 -m scripts.package_skill ...`，**不能**用 `python3 scripts/package_skill.py ...`，否则会报 `ModuleNotFoundError: No module named 'scripts'`（因为 `package_skill.py` 内部有 `from scripts.quick_validate import validate_skill`，需要 Python 把 `scripts/` 识别为包）。
+
+### pre-commit hook（可选，自动跑 sync）
+
+装上后，每次 `git commit` 会自动跑 `sync_references.py`。**双保险**：即使忘了手动 sync，commit 前也会同步。
+
+```bash
+# 一次性安装
+pip3 install pre-commit
+pre-commit install
+
+# 验证
+git commit --allow-empty -m "test"   # 应该看到 sync 自动跑
+```
+
+如果 pre-commit 装失败，本仓库主流程不受影响——`validate_and_sync.py` 在每次校验前都会先 sync，是 95% 覆盖的安全网。
+
+### 改一份共享 reference 的完整流程
+
+```
+1. 改 _shared/visual-styles.md（或其他共享文件）
+2. python3 scripts/sync_references.py           # 同步到两个 references/
+3. python3 -m scripts.validate_and_sync \
+      product-architecture-build/skills/product-architecture-build
+4. python3 -m scripts.validate_and_sync \
+      product-architecture-teardown/skills/product-architecture-teardown
+5. python3 -m scripts.package_skill \
+      product-architecture-build/skills/product-architecture-build dist/
+6. python3 -m scripts.package_skill \
+      product-architecture-teardown/skills/product-architecture-teardown dist/
+7. git add -A && git commit -m "..."             # pre-commit hook 再次跑 sync 兜底
+8. git push
+```
 
 ---
 
 ## 更新日志
 
+- **v1.1** (2026-05-15) — references 架构重构：把 monolithic SKILL.md 拆成"主文件 + references"结构，引入 `_shared/` 单一来源 + sync 脚本 + 双保险 (`validate_and_sync` + pre-commit hook)。dist/ 文件扩展名从 `.zip` 改为 `.skill`（Anthropic 官方推荐格式）。顺手修复 v4 bug：开场 5 问统一（v4 标题写 4 问/正文 5 问的矛盾）、`transform: scale` 错误描述（实际原因是 contenteditable 光标偏移 + 滚动条范围）。维护性提升（改色板只动一处），HTML 输出场景 token 加载 +7%（接受，换可维护性）。
 - **v1.0.1** (2026-05-14) — README 修订：通用 git clone + cp 安装方式提升为推荐方法。明确 `/plugin` 命令的客户端限制。所有用户名占位符替换为实际值。
 - **v1.0** (2026-05-14) — 初版发布。两个 skill：搭建 + 拆解。基于 4 层骨架方法论。同时作为 Claude Code Plugin Marketplace 分发。
 

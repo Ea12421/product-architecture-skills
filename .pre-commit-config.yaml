@@ -1,0 +1,24 @@
+# pre-commit hook config: automatically run `sync_references.py` before every commit.
+#
+# One-time setup (in repo root):
+#   pip3 install pre-commit
+#   pre-commit install
+#
+# After setup, every `git commit` will run sync first. If sync changes any
+# references/ file, the commit will fail; just re-add the changed files and
+# commit again. This is the 100%-coverage safety net on top of
+# validate_and_sync.py.
+#
+# If pre-commit fails to install (e.g. due to network restrictions), this file
+# is harmless and you can rely on validate_and_sync.py as the primary safety
+# layer. See scripts/validate_and_sync.py.
+
+repos:
+  - repo: local
+    hooks:
+      - id: sync-references
+        name: Sync shared references to both skills
+        entry: python3 scripts/sync_references.py
+        language: system
+        pass_filenames: false
+        always_run: true
