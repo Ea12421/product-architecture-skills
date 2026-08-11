@@ -4,12 +4,32 @@
 
 兼容所有支持 Agent Skills 开放标准的客户端：Claude Code（CLI 和 IDE 扩展）、claude.ai、Cursor、Codex CLI、Gemini CLI、GitHub Copilot 等。
 
+## 30 秒看懂产出
+
+下面是 `product-architecture-build` 对“制造业 AI 售后客服”的合成示例节选。实际运行时会先确认用户、场景和交付范围，再生成对应内容。
+
+```mermaid
+flowchart TB
+    D["数据层<br/>产品手册 · 售后 FAQ · 维修工单 · 用户对话"]
+    A["能力层<br/>大模型对话 · RAG 检索 · 意图识别 · 工单对接"]
+    S["场景层<br/>智能问答 · 智能报修 · 人工兜底 · 满意度回访"]
+    T["触达层<br/>微信公众号 · 官网 · App"]
+
+    D -->|提供知识与业务数据| A
+    A -->|组合能力| S
+    S -->|交付服务| T
+    T -.->|沉淀用户对话| D
+    S -.->|优质问答回补| D
+```
+
+它关注的是“业务模块如何协作、数据如何流转”，不是页面布局或技术栈猜测。
+
 ## 包含的 Skills
 
 | Skill | 中文名 | 用途 |
 |-------|--------|------|
-| product-architecture-build | 产品架构搭建 | 从 0 搭建 AI 产品的架构图或完整立项方案 |
-| product-architecture-teardown | 产品架构拆解 | 逆向拆解已有 AI 产品的架构（六步法） |
+| [product-architecture-build](product-architecture-build/skills/product-architecture-build/SKILL.md) | 产品架构搭建 | 从 0 搭建 AI 产品的架构图或完整立项方案 |
+| [product-architecture-teardown](product-architecture-teardown/skills/product-architecture-teardown/SKILL.md) | 产品架构拆解 | 逆向拆解已有 AI 产品的架构（六步法） |
 
 两个 skill 互相独立，可单独安装。
 
